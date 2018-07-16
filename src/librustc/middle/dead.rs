@@ -396,8 +396,12 @@ impl<'v, 'k, 'tcx> ItemLikeVisitor<'v> for LifeSeeder<'k, 'tcx> {
 fn create_and_seed_worklist<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
                                       access_levels: &privacy::AccessLevels,
                                       krate: &hir::Crate)
-                                      -> Vec<ast::NodeId> {
-    let mut worklist = Vec::new();
+                                      -> Vec<ast::NodeId>
+{
+    let mut worklist = Vec::with_capacity(access_levels.map.len() +
+        if tcx.sess.entry_fn.borrow().is_some() { 1 } else { 0 }
+    );
+
     for (id, _) in &access_levels.map {
         worklist.push(*id);
     }
