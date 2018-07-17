@@ -1464,7 +1464,12 @@ impl<'a, 'gcx, 'tcx> Bounds<'tcx> {
     pub fn predicates(&self, tcx: TyCtxt<'a, 'gcx, 'tcx>, param_ty: Ty<'tcx>)
                       -> Vec<ty::Predicate<'tcx>>
     {
-        let mut vec = Vec::new();
+        let mut vec = Vec::with_capacity(
+            if self.implicitly_sized && tcx.lang_items().sized_trait().is_some() { 1 } else { 0 } +
+            self.region_bounds.len() +
+            self.trait_bounds.len() +
+            self.projection_bounds.len()
+        );
 
         // If it could be sized, and is, add the sized predicate
         if self.implicitly_sized {

@@ -1353,8 +1353,18 @@ fn generated_output_paths(
     exact_name: bool,
     crate_name: &str,
 ) -> Vec<PathBuf> {
-    let mut out_filenames = Vec::new();
-    for output_type in sess.opts.output_types.keys() {
+    let output_types = sess.opts.output_types.keys();
+    let mut out_filenames = Vec::with_capacity(
+        output_types.iter().fold(0, |acc, ot| acc +
+            if ot == OutputType::DepInfo && sess.opts.debugging_opts.dep_info_omit_d_target {
+                0
+            } else {
+                1
+            }
+        )
+    );
+
+    for output_type in output_types {
         let file = outputs.path(*output_type);
         match *output_type {
             // If the filename has been overridden using `-o`, it will not be modified

@@ -562,13 +562,16 @@ impl<'a, 'gcx, 'tcx> InferCtxt<'a, 'gcx, 'tcx> {
     }
 
     pub fn unsolved_variables(&self) -> Vec<Ty<'tcx>> {
-        let mut variables = Vec::new();
+        let unsolved_type_variables = self.type_variables.borrow_mut().unsolved_variables();
+        let mut variables = Vec::with_capacity(
+            unsolved_type_variables.len() +
+            self.int_unification_table.borrow().len() +
+            self.float_unification_table.borrow().len()
+        );
 
         {
-            let mut type_variables = self.type_variables.borrow_mut();
             variables.extend(
-                type_variables
-                    .unsolved_variables()
+                unsolved_type_variables
                     .into_iter()
                     .map(|t| self.tcx.mk_var(t)));
         }
